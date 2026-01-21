@@ -18,7 +18,7 @@ st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap');
 
-    /* 全局背景：清爽的淺藍色，像晴朗的天空 */
+    /* 全局背景：清爽的淺藍色 */
     .stApp { 
         background-color: #E3F2FD; 
         font-family: 'Noto Sans TC', sans-serif;
@@ -26,7 +26,7 @@ st.markdown("""
     
     .block-container { padding-top: 2rem !important; padding-bottom: 5rem !important; }
     
-    /* 修正 h1：標題樣式，避免 Emoji 消失 */
+    /* 標題樣式 */
     h1 {
         font-family: 'Helvetica Neue', sans-serif;
         font-weight: 900 !important;
@@ -36,14 +36,14 @@ st.markdown("""
         margin-bottom: 0px;
     }
     
-    /* 專門給文字用的漸層 class (藍紫色系) */
+    /* 標題文字漸層 */
     .melody-text {
         background: linear-gradient(120deg, #1565C0, #7B1FA2);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
     }
 
-    /* 文字顏色：深藍灰色 */
+    /* 一般文字顏色 */
     p, div, span, label, li {
         color: #37474F !important;
     }
@@ -67,7 +67,7 @@ st.markdown("""
         background: linear-gradient(90deg, #1E88E5 0%, #1565C0 100%);
     }
     
-    /* 卡片：白色背景，配上亮黃色邊框 (象徵快樂) */
+    /* 單字卡片：白色背景 + 黃色邊框 */
     .card {
         background-color: #FFFFFF;
         padding: 20px;
@@ -83,17 +83,52 @@ st.markdown("""
         border-color: #FDD835;
     }
     
-    /* 歌詞卡片：左側改為深藍色線條 */
-    .lyrics-card {
+    /* --- 完整歌詞歌譜樣式 --- */
+    .song-sheet {
         background-color: #FFFFFF;
-        padding: 20px 25px;
-        border-radius: 16px;
-        margin-bottom: 15px;
-        border-left: 6px solid #1565C0;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+        padding: 40px 30px;
+        border-radius: 20px;
+        border: 4px solid #FFF59D; /* 亮黃色邊框 */
+        text-align: center;
+        margin-bottom: 20px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+        position: relative;
     }
     
-    /* 大字體：強調色改為深紫色 */
+    /* 裝飾用的音符 */
+    .song-sheet::before {
+        content: "🎵";
+        position: absolute;
+        top: 15px;
+        left: 20px;
+        font-size: 30px;
+        opacity: 0.5;
+    }
+    .song-sheet::after {
+        content: "🎶";
+        position: absolute;
+        bottom: 15px;
+        right: 20px;
+        font-size: 30px;
+        opacity: 0.5;
+    }
+
+    .song-line-amis {
+        font-size: 22px;
+        font-weight: 800;
+        color: #1565C0 !important;
+        margin-bottom: 5px;
+        letter-spacing: 0.5px;
+    }
+    
+    .song-line-zh {
+        font-size: 15px;
+        color: #90A4AE !important;
+        margin-bottom: 25px; /* 句與句之間的距離 */
+        font-weight: 500;
+    }
+
+    /* 單字大字體 */
     .big-font {
         font-size: 26px !important;
         font-weight: 800;
@@ -113,7 +148,7 @@ st.markdown("""
         filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
     }
     
-    /* 動作標籤：淺藍色背景 */
+    /* 動作標籤 */
     .action-tag {
         color: #0D47A1 !important;
         font-size: 13px;
@@ -172,8 +207,7 @@ VOCABULARY = [
     {"amis": "lipahak",     "zh": "快樂",       "emoji": "😄", "action": "大笑",     "file": "v_lipahak"},
 ]
 
-# 為了 Q2 填空題，建立「人稱-動作」或「歌詞邏輯」對應表
-# 這裡我們設計：給定人稱，選對應歌詞中的動作 (根據這首歌的歌詞)
+# 測驗題庫
 QA_PAIRS = [
     {"subject": "Kiso",   "action": "romadiw",    "zh_subject": "你", "zh_action": "唱歌"},
     {"subject": "Kako",   "action": "makero",     "zh_subject": "我", "zh_action": "跳舞"},
@@ -190,7 +224,7 @@ def play_audio(text, filename_base=None):
                 return
     
     try:
-        tts = gTTS(text=text, lang='id') # 印尼語發音接近阿美語
+        tts = gTTS(text=text, lang='id')
         fp = BytesIO()
         tts.write_to_fp(fp)
         fp.seek(0)
@@ -201,51 +235,31 @@ def play_audio(text, filename_base=None):
 # --- 2. 隨機出題邏輯 ---
 
 def init_quiz():
-    """初始化或重置測驗題目"""
     st.session_state.score = 0
     st.session_state.current_q = 0
     
-    # --- Q1: 聽力測驗 (聽單字，選意思) ---
+    # Q1: 聽力
     q1_target = random.choice(VOCABULARY)
     others = [v for v in VOCABULARY if v['amis'] != q1_target['amis']]
     q1_options = random.sample(others, 2) + [q1_target]
     random.shuffle(q1_options)
-    
-    st.session_state.q1_data = {
-        "target": q1_target,
-        "options": q1_options
-    }
+    st.session_state.q1_data = {"target": q1_target, "options": q1_options}
 
-    # --- Q2: 歌詞填空 (根據這首歌的歌詞邏輯) ---
-    # 題目：Kako kako kako _______ ? (答案：makero)
+    # Q2: 歌詞填空
     q2_target = random.choice(QA_PAIRS)
-    
-    # 選項：只給動作類的單字 (romadiw, makero, mikongkong)
     action_words = ["romadiw", "makero", "mikongkong"]
-    # 確保正確答案在裡面，然後隨機排列
     q2_options = action_words.copy()
     random.shuffle(q2_options)
-    
-    st.session_state.q2_data = {
-        "target": q2_target,
-        "options": q2_options,
-        "correct_ans": q2_target['action']
-    }
+    st.session_state.q2_data = {"target": q2_target, "options": q2_options, "correct_ans": q2_target['action']}
 
-    # --- Q3: 句子理解 (聽歌詞，選中文) ---
+    # Q3: 句子理解
     q3_target = random.choice(LYRICS)
     other_sentences = [s['zh'] for s in LYRICS if s['zh'] != q3_target['zh']]
-    # 歌詞只有4句，所以選項少一點沒關係，取隨機2個錯誤的
     q3_options_pool = random.sample(other_sentences, min(2, len(other_sentences))) 
     q3_options = q3_options_pool + [q3_target['zh']]
     random.shuffle(q3_options)
-    
-    st.session_state.q3_data = {
-        "target": q3_target,
-        "options": q3_options
-    }
+    st.session_state.q3_data = {"target": q3_target, "options": q3_options}
 
-# 如果是第一次執行，初始化題目
 if 'q1_data' not in st.session_state:
     init_quiz()
 
@@ -258,24 +272,35 @@ def show_learning_mode():
             <div style='color: #546E7A !important; font-size: 18px; margin-top: 8px; font-weight:500;'>
                 — 我們來唱歌 —
             </div>
+            <div style='color: #546E7A !important; font-size: 15px; margin-top: 15px; font-weight: 500;'>
+                講師：曾純美 &nbsp;&nbsp; 教材提供者：曾純美
+            </div>
         </div>
         """, unsafe_allow_html=True)
     
     st.info("💡 點擊播放按鈕，跟著節奏一起唱！")
     
-    # --- Part 1: 歌曲 (歌詞) ---
-    st.markdown("### 🎵 歡樂歌謠")
+    # --- Part 1: 完整歌曲 (歌譜模式) ---
+    st.markdown("### 🎵 歌詞")
     
+    # 組合完整的 HTML 歌譜
+    lyrics_html = '<div class="song-sheet">'
     for line in LYRICS:
-        st.markdown(f"""
-        <div class="lyrics-card">
-            <div style="font-size: 20px; font-weight:800; color:#1565C0 !important; margin-bottom: 8px;">
-                {line['amis']}
-            </div>
-            <div style="color:#455A64 !important; font-size: 16px;">{line['zh']}</div>
-        </div>
-        """, unsafe_allow_html=True)
-        play_audio(line['amis'], filename_base=line['file'])
+        lyrics_html += f"""
+            <div class="song-line-amis">{line['amis']}</div>
+            <div class="song-line-zh">{line['zh']}</div>
+        """
+    lyrics_html += '</div>'
+    st.markdown(lyrics_html, unsafe_allow_html=True)
+    
+    # 在歌譜下方提供分句播放功能
+    with st.expander("🎧 播放歌詞錄音 (分句練習)", expanded=True):
+        for i, line in enumerate(LYRICS):
+            col_a, col_b = st.columns([0.2, 0.8])
+            with col_a:
+                st.markdown(f"**第 {i+1} 句**")
+            with col_b:
+                play_audio(line['amis'], filename_base=line['file'])
 
     st.markdown("---")
 
@@ -303,17 +328,14 @@ def show_quiz_mode():
     st.progress(st.session_state.current_q / 3)
     st.write("") 
 
-    # --- Q1 顯示邏輯 ---
+    # Q1
     if st.session_state.current_q == 0:
         data = st.session_state.q1_data
         target = data['target']
-        
         st.markdown("**第 1 關：聽聽看，這是什麼意思？**")
         play_audio(target['amis'], filename_base=target['file'])
-        
         st.write("")
         cols = st.columns(3)
-        
         for idx, opt in enumerate(data['options']):
             with cols[idx]:
                 if st.button(f"{opt['emoji']} {opt['zh']}"):
@@ -327,25 +349,20 @@ def show_quiz_mode():
                     else:
                         st.error(f"不對喔，{opt['zh']} 是 {opt['amis']}")
 
-    # --- Q2 顯示邏輯 (歌詞記憶/填空) ---
+    # Q2
     elif st.session_state.current_q == 1:
         data = st.session_state.q2_data
         target = data['target']
-        
         st.markdown("**第 2 關：歌詞接龍**")
         st.markdown(f"歌詞唱到： **{target['subject']} {target['subject']} {target['subject']} ...**")
         st.markdown("接下要做什麼動作？")
-        
         st.markdown(f"""
         <div style="background:#FFFFFF; padding:20px; border-radius:15px; border-left: 6px solid #1E88E5; margin: 15px 0; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
             <span style="font-size:20px; color:#333 !important;">{target['subject']} {target['subject']} {target['subject']} <b>_______</b></span>
             <br><span style="color:#888; font-size:15px;">({target['zh_subject']} {target['zh_subject']} {target['zh_subject']} {target['zh_action']})</span>
         </div>
         """, unsafe_allow_html=True)
-        
-        # 選項只有阿美語
         ans = st.radio("請選擇正確的動作：", data['options'])
-        
         if st.button("確定送出"):
             if ans == data['correct_ans']:
                 st.balloons()
@@ -357,15 +374,13 @@ def show_quiz_mode():
             else:
                 st.error("再想一下，這首歌裡不是這樣唱的喔！")
 
-    # --- Q3 顯示邏輯 ---
+    # Q3
     elif st.session_state.current_q == 2:
         data = st.session_state.q3_data
         target = data['target']
-        
         st.markdown("**第 3 關：歌詞翻譯**")
         st.markdown("請聽這句歌詞，是什麼意思？")
         play_audio(target['amis'], filename_base=target['file'])
-        
         for opt_text in data['options']:
             if st.button(opt_text):
                 if opt_text == target['zh']:
@@ -378,7 +393,7 @@ def show_quiz_mode():
                 else:
                     st.error("不對喔，再聽一次看看！")
 
-    # --- 結算畫面 ---
+    # 結算
     else:
         st.markdown(f"""
         <div style='text-align: center; padding: 40px; background-color: #FFFFFF; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);'>
@@ -387,14 +402,12 @@ def show_quiz_mode():
             <div style='font-size: 80px; margin: 20px 0;'>💃</div>
         </div>
         """, unsafe_allow_html=True)
-        
         if st.button("🔄 再玩一次 (題目會變喔)"):
-            init_quiz() # 重新抽題
+            init_quiz()
             st.rerun()
 
 # --- 4. 主程式 ---
 def main():
-    # 標題修正：文字漸層 + 獨立 Emoji
     st.markdown("""
         <h1>
             <span class="melody-text">阿美語音樂課</span> 
