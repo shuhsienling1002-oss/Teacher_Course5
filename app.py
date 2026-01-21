@@ -207,7 +207,7 @@ VOCABULARY = [
     {"amis": "lipahak",     "zh": "快樂",       "emoji": "😄", "action": "大笑",     "file": "v_lipahak"},
 ]
 
-# 測驗題庫
+# 測驗題庫 (只保留邏輯對應)
 QA_PAIRS = [
     {"subject": "Kiso",   "action": "romadiw",    "zh_subject": "你", "zh_action": "唱歌"},
     {"subject": "Kako",   "action": "makero",     "zh_subject": "我", "zh_action": "跳舞"},
@@ -240,27 +240,21 @@ def init_quiz():
     st.session_state.score = 0
     st.session_state.current_q = 0
     
-    # Q1: 聽力
+    # Q1: 聽力 (單字)
     q1_target = random.choice(VOCABULARY)
     others = [v for v in VOCABULARY if v['amis'] != q1_target['amis']]
     q1_options = random.sample(others, 2) + [q1_target]
     random.shuffle(q1_options)
     st.session_state.q1_data = {"target": q1_target, "options": q1_options}
 
-    # Q2: 歌詞填空
+    # Q2: 歌詞接龍 (邏輯)
     q2_target = random.choice(QA_PAIRS)
     action_words = ["romadiw", "makero", "mikongkong"]
     q2_options = action_words.copy()
     random.shuffle(q2_options)
     st.session_state.q2_data = {"target": q2_target, "options": q2_options, "correct_ans": q2_target['action']}
-
-    # Q3: 句子理解
-    q3_target = random.choice(LYRICS)
-    other_sentences = [s['zh'] for s in LYRICS if s['zh'] != q3_target['zh']]
-    q3_options_pool = random.sample(other_sentences, min(2, len(other_sentences))) 
-    q3_options = q3_options_pool + [q3_target['zh']]
-    random.shuffle(q3_options)
-    st.session_state.q3_data = {"target": q3_target, "options": q3_options}
+    
+    # 已移除原本的 Q3 (句子翻譯)
 
 if 'q1_data' not in st.session_state:
     init_quiz()
@@ -283,11 +277,11 @@ def show_learning_mode():
     # --- Part 1: 完整歌曲 (歌譜模式) ---
     st.markdown("### 🎵 歌詞")
     
-    # 全曲播放器 (請確保音檔名稱為 romadiw_song.mp3 或 .m4a)
+    # 全曲播放器
     st.info("💡 點擊下方播放鍵，聆聽整首歌曲！")
     play_audio("Romadiw Song", filename_base="romadiw_song")
 
-    # 組合完整的 HTML 歌譜 (已修正縮排問題)
+    # 組合完整的 HTML 歌譜
     lyrics_html = '<div class="song-sheet">'
     for line in LYRICS:
         lyrics_html += f'<div class="song-line-amis">{line["amis"]}</div><div class="song-line-zh">{line["zh"]}</div>'
@@ -317,10 +311,11 @@ def show_learning_mode():
 def show_quiz_mode():
     st.markdown("<h3 style='text-align: center; color: #1565C0 !important; margin-bottom: 20px;'>🏆 音樂挑戰賽</h3>", unsafe_allow_html=True)
     
-    st.progress(st.session_state.current_q / 3)
+    # 進度條改為 2 關
+    st.progress(st.session_state.current_q / 2)
     st.write("") 
 
-    # Q1
+    # Q1: 單字聽力
     if st.session_state.current_q == 0:
         data = st.session_state.q1_data
         target = data['target']
@@ -341,7 +336,7 @@ def show_quiz_mode():
                     else:
                         st.error(f"不對喔，{opt['zh']} 是 {opt['amis']}")
 
-    # Q2
+    # Q2: 歌詞接龍 (邏輯)
     elif st.session_state.current_q == 1:
         data = st.session_state.q2_data
         target = data['target']
@@ -366,27 +361,7 @@ def show_quiz_mode():
             else:
                 st.error("再想一下，這首歌裡不是這樣唱的喔！")
 
-    # Q3
-    elif st.session_state.current_q == 2:
-        data = st.session_state.q3_data
-        target = data['target']
-        st.markdown("**第 3 關：歌詞翻譯**")
-        st.markdown("請聽這句歌詞，是什麼意思？")
-        # 這裡會使用 TTS，因為沒有單句音檔，但這樣測驗還是可以進行
-        play_audio(target['amis']) 
-        for opt_text in data['options']:
-            if st.button(opt_text):
-                if opt_text == target['zh']:
-                    st.balloons()
-                    st.success("全對！你是阿美語歌王/歌后！🎤")
-                    time.sleep(1.5)
-                    st.session_state.score += 1
-                    st.session_state.current_q += 1
-                    st.rerun()
-                else:
-                    st.error("不對喔，再聽一次看看！")
-
-    # 結算
+    # 結算畫面
     else:
         st.markdown(f"""
         <div style='text-align: center; padding: 40px; background-color: #FFFFFF; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);'>
