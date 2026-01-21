@@ -283,14 +283,13 @@ def show_learning_mode():
     # --- Part 1: 完整歌曲 (歌譜模式) ---
     st.markdown("### 🎵 歌詞")
     
-    # 組合完整的 HTML 歌譜
+    # 修正：移除 f-string 內的縮排，避免被誤判為程式碼區塊
     lyrics_html = '<div class="song-sheet">'
     for line in LYRICS:
-        lyrics_html += f"""
-            <div class="song-line-amis">{line['amis']}</div>
-            <div class="song-line-zh">{line['zh']}</div>
-        """
+        lyrics_html += f'<div class="song-line-amis">{line["amis"]}</div>'
+        lyrics_html += f'<div class="song-line-zh">{line["zh"]}</div>'
     lyrics_html += '</div>'
+    
     st.markdown(lyrics_html, unsafe_allow_html=True)
     
     # 在歌譜下方提供分句播放功能
