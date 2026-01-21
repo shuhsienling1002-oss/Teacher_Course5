@@ -187,12 +187,12 @@ st.markdown("""
 
 # --- 1. 數據結構 ---
 
-# 歌詞資料
+# 歌詞資料 (僅用於顯示文字)
 LYRICS = [
-    {"amis": "Kiso kiso kiso romadiw",      "zh": "你 你 你 唱歌",     "file": "song_line1"},
-    {"amis": "Kako kako kako makero",       "zh": "我 我 我 跳舞",     "file": "song_line2"},
-    {"amis": "Cingra cingra cingra mikongkong", "zh": "他 他 他 敲擊(打拍子)", "file": "song_line3"},
-    {"amis": "Maemin kita maemin kita lipahak", "zh": "我們大家 我們大家 很快樂", "file": "song_line4"},
+    {"amis": "Kiso kiso kiso romadiw",      "zh": "你 你 你 唱歌"},
+    {"amis": "Kako kako kako makero",       "zh": "我 我 我 跳舞"},
+    {"amis": "Cingra cingra cingra mikongkong", "zh": "他 他 他 敲擊(打拍子)"},
+    {"amis": "Maemin kita maemin kita lipahak", "zh": "我們大家 我們大家 很快樂"},
 ]
 
 # 單字資料
@@ -278,29 +278,20 @@ def show_learning_mode():
         </div>
         """, unsafe_allow_html=True)
     
-    st.info("💡 點擊播放按鈕，跟著節奏一起唱！")
-    
     # --- Part 1: 完整歌曲 (歌譜模式) ---
     st.markdown("### 🎵 歌詞")
     
-    # 修正：移除 f-string 內的縮排，避免被誤判為程式碼區塊
+    # 全曲播放器 (請確保音檔名稱為 romadiw_song.mp3 或 .m4a)
+    st.info("💡 點擊下方播放鍵，聆聽整首歌曲！")
+    play_audio("Romadiw Song", filename_base="romadiw_song")
+
+    # 組合完整的 HTML 歌譜 (修正縮排問題)
     lyrics_html = '<div class="song-sheet">'
     for line in LYRICS:
-        lyrics_html += f'<div class="song-line-amis">{line["amis"]}</div>'
-        lyrics_html += f'<div class="song-line-zh">{line["zh"]}</div>'
+        lyrics_html += f'<div class="song-line-amis">{line["amis"]}</div><div class="song-line-zh">{line["zh"]}</div>'
     lyrics_html += '</div>'
     
     st.markdown(lyrics_html, unsafe_allow_html=True)
-    
-    # 在歌譜下方提供分句播放功能
-    with st.expander("🎧 播放歌詞錄音 (分句練習)", expanded=True):
-        for i, line in enumerate(LYRICS):
-            col_a, col_b = st.columns([0.2, 0.8])
-            with col_a:
-                st.markdown(f"**第 {i+1} 句**")
-            with col_b:
-                play_audio(line['amis'], filename_base=line['file'])
-
     st.markdown("---")
 
     # --- Part 2: 單字 ---
@@ -379,7 +370,8 @@ def show_quiz_mode():
         target = data['target']
         st.markdown("**第 3 關：歌詞翻譯**")
         st.markdown("請聽這句歌詞，是什麼意思？")
-        play_audio(target['amis'], filename_base=target['file'])
+        # 這裡會使用 TTS，因為沒有單句音檔，但這樣測驗還是可以進行
+        play_audio(target['amis']) 
         for opt_text in data['options']:
             if st.button(opt_text):
                 if opt_text == target['zh']:
