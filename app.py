@@ -187,7 +187,7 @@ st.markdown("""
 
 # --- 1. 數據結構 ---
 
-# 歌詞資料 (僅用於顯示文字)
+# 歌詞資料
 LYRICS = [
     {"amis": "Kiso kiso kiso romadiw",      "zh": "你 你 你 唱歌"},
     {"amis": "Kako kako kako makero",       "zh": "我 我 我 跳舞"},
@@ -216,13 +216,15 @@ QA_PAIRS = [
 
 # --- 1.5 智慧語音核心 ---
 def play_audio(text, filename_base=None):
+    # 1. 優先播放真人錄音 (支援 mp3 和 m4a)
     if filename_base:
-        for ext in ['m4a', 'mp3']:
+        for ext in ['mp3', 'm4a']:
             path = f"audio/{filename_base}.{ext}"
             if os.path.exists(path):
                 st.audio(path, format=f'audio/{ext}')
                 return
     
+    # 2. 找不到檔案，用機器人唸 (備用)
     try:
         tts = gTTS(text=text, lang='id')
         fp = BytesIO()
@@ -285,7 +287,7 @@ def show_learning_mode():
     st.info("💡 點擊下方播放鍵，聆聽整首歌曲！")
     play_audio("Romadiw Song", filename_base="romadiw_song")
 
-    # 組合完整的 HTML 歌譜 (修正縮排問題)
+    # 組合完整的 HTML 歌譜 (已修正縮排問題)
     lyrics_html = '<div class="song-sheet">'
     for line in LYRICS:
         lyrics_html += f'<div class="song-line-amis">{line["amis"]}</div><div class="song-line-zh">{line["zh"]}</div>'
